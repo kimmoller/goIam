@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS identity
+DROP TABLE IF EXISTS account

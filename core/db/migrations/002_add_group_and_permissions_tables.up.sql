@@ -1,14 +1,22 @@
-CREATE TABLE IF NOT EXISTS identity(
+CREATE TABLE IF NOT EXISTS permission(
     id serial PRIMARY KEY,
-    first_name varchar(255) NOT NULL,
-    last_name varchar(255) NOT NULL,
-    email varchar(255) NOT NULL
+    system_id varchar(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS account(
+CREATE TABLE IF NOT EXISTS permission_group(
     id serial PRIMARY KEY,
-    username varchar(255) NOT NULL,
-    system_id varchar(255) NOT NULL,
+    name varchar(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS permission_to_group(
+    id serial PRIMARY KEY,
+    permission_id int REFERENCES permission(id),
+    group_id int REFERENCES permission_group(id)
+);
+
+CREATE TABLE IF NOT EXISTS group_membership(
+    id serial PRIMARY KEY,
+    group_id int REFERENCES permission_group(id),
     identity_id int REFERENCES identity(id),
     created_at timestamptz NOT NULL DEFAULT now(),
     provisioned_at timestamptz,

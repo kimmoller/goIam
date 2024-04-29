@@ -31,12 +31,16 @@ func (pg *postgres) getIdentityAccountsFromDb(ctx context.Context, identityId st
 	return accounts, nil
 }
 
-func (pg *postgres) insertAccount(ctx context.Context, account Account) {
-	query := "insert into account (system_id, username, identity_id) values (@systemId, @username, @identityId)"
+func (pg *postgres) insertAccount(ctx context.Context, account CreateAccount) {
+	query := "insert into account (system_id, username, identity_id, enabled_at, disabled_at, deleted_at)" +
+		" values (@systemId, @username, @identityId, @enabledAt, @disabledAt, @deletedAt)"
 	args := pgx.NamedArgs{
-		"systemId":   account.SystemId,
-		"username":   account.Username,
-		"identityId": account.IdentityId,
+		"systemId":   account.systemId,
+		"username":   account.username,
+		"identityId": account.identityId,
+		"enabledAt":  account.enabledAt,
+		"disabledAt": account.disabledAt,
+		"deletedAt":  account.deletedAt,
 	}
 
 	_, err := pg.db.Exec(ctx, query, args)

@@ -29,10 +29,6 @@ func failOnError(err error, msg string) {
 func main() {
 	client := gocloak.NewClient("http://0.0.0.0:8080")
 	ctx := context.Background()
-	token, err := client.LoginAdmin(ctx, "keycloak-handler", "keycloak", "private")
-	if err != nil {
-		panic("Something wrong with the credentials or url")
-	}
 
 	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -84,6 +80,10 @@ func main() {
 					RequiredActions: &requiredActions,
 				}
 
+				token, err := client.LoginAdmin(ctx, "keycloak-handler", "keycloak", "private")
+				if err != nil {
+					panic("Something wrong with the credentials or url")
+				}
 				_, err = client.CreateUser(ctx, token.AccessToken, "private", user)
 
 				if err != nil {

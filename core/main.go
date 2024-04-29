@@ -20,6 +20,8 @@ func main() {
 	router.GET("/account/:identityId", getIdentityAccounts)
 	router.POST("/account", createAccount)
 
+	router.POST("/membership", createGroupMembership)
+
 	go syncAccounts()
 	go commitAccounts()
 	router.Run(":8081")

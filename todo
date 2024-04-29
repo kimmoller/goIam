@@ -1,11 +1,7 @@
-Add groups
+Provision accounts as disabled
+Enable with a separate enabling process
 
-Add rights to groups
-(group gives access to private keycloak account)
-
-Provision accounts based on identity groups
-
-Add account enable/disable
+Add disable/delete processes
 
 Add test cases
 
@@ -18,3 +14,8 @@ DONE:
 Messages to handlers based on system_id
 Enhance account data with username
 Add identity info to account creation
+Add groups
+Add rights to groups
+(group gives access to private keycloak account)
+Provision accounts based on identity groups
+Add account enable/disable

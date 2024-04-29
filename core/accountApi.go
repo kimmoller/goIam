@@ -21,7 +21,7 @@ func getIdentityAccounts(c *gin.Context) {
 }
 
 func createAccount(c *gin.Context) {
-	var account Account
+	var account CreateAccount
 
 	if err := c.BindJSON(&account); err != nil {
 		log.Print(err)

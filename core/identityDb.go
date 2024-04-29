@@ -24,7 +24,8 @@ func (pg *postgres) getIdentitiesFromDb(ctx context.Context) ([]Identity, error)
 	for rows.Next() {
 		identity := Identity{}
 		err := rows.Scan(&identity.ID, &identity.FirstName, &identity.LastName, &identity.Email,
-			&identity.Account.ID, &identity.Account.SystemId, &identity.Account.IdentityId)
+			&identity.Account.ID, &identity.Account.SystemId, &identity.Account.IdentityId,
+			&identity.Account.CreatedAt, &identity.Account.ProvisionedAt, &identity.Account.CommittedAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("unable to scan row: %w", err)

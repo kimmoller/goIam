@@ -1,0 +1,60 @@
+services:
+
+  db:
+    container_name: iam-core-db
+    image: postgres:16.2-alpine
+    restart: always
+    network_mode: host
+    environment:
+      POSTGRES_USER: iamcore
+      POSTGRES_DB: iamcore
+      POSTGRES_PASSWORD: iamcore
+    volumes:
+    - iam-core-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  message-broker:
+    container_name: iam-message-broker
+    image: rabbitmq:3-management-alpine
+    network_mode: host
+    volumes:
+      - ${HOME}/dev-rabbitmq/data/:/var/lib/rabbitmq
+      - ${HOME}/dev-rabbitmq/log/:/var/log/rabbitmq
+    restart: always
+
+  keydloak-db:
+    container_name: iam-keycloak-db
+    image: postgres:16.2-alpine
+    restart: always
+    network_mode: host
+    environment:
+      POSTGRES_DB: iamkeycloak
+      POSTGRES_USER: iamkeycloak
+      POSTGRES_PASSWORD: iamkeycloak
+
+  keycloak:
+    depends_on:
+      - keydloak-db
+    container_name: iam-keycloak
+    network_mode: host
+    environment:
+      KEYCLOAK_ADMIN: "admin"
+      KEYCLOAK_ADMIN_PASSWORD: "admin"
+      DB_VENDOR: postgres
+      DB_ADDR: postgres
+      DB_DATABASE: iamkeycloak
+      DB_USER: iamkeycloak
+      DB_PASSWORD: iamkeycloak
+    image: quay.io/keycloak/keycloak:24.0.3
+    ports:
+      - "28080:8080"
+    restart: always
+    command: start-dev
+ 
+volumes:
+  iam-core-data:

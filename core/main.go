@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	dbUrl := "postgres://iamcore:iamcore@localhost:5432/iamcore"
+	dbUrl := "postgres://iamcore:iamcore@0.0.0.0:9080/iamcore"
 
 	migratedb(dbUrl)
 	NewPG(context.Background(), dbUrl)

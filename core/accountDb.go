@@ -19,28 +19,23 @@ func (pg *postgres) getIdentityAccountsFromDb(ctx context.Context, identityId st
 	rows, err := pg.db.Query(ctx, query, args)
 
 	if err != nil {
-		log.Printf("Unable to get identity %s accounts, %s", identityId, err)
-		return nil, err
+		return nil, fmt.Errorf("unable to get identity %s accounts, %w", identityId, err)
 	}
 
-	accounts := []Account{}
-	for rows.Next() {
-		account := Account{}
-		err := rows.Scan(&account.ID, &account.SystemId, &account.IdentityId)
+	accounts, err := pgx.CollectRows(rows, pgx.RowToStructByName[Account])
 
-		if err != nil {
-			return nil, fmt.Errorf("unable to scan row: %w", err)
-		}
-		accounts = append(accounts, account)
+	if err != nil {
+		return nil, fmt.Errorf("unable to scan row: %w", err)
 	}
 
 	return accounts, nil
 }
 
 func (pg *postgres) insertAccount(ctx context.Context, account Account) {
-	query := "insert into account (system_id, identity_id) values (@systemId, @identityId)"
+	query := "insert into account (system_id, username, identity_id) values (@systemId, @username, @identityId)"
 	args := pgx.NamedArgs{
 		"systemId":   account.SystemId,
+		"username":   account.Username,
 		"identityId": account.IdentityId,
 	}
 
@@ -50,8 +45,9 @@ func (pg *postgres) insertAccount(ctx context.Context, account Account) {
 	}
 }
 
-func (pg *postgres) getAccountsForProvisioning(ctx context.Context) ([]Account, error) {
-	query := "select * from account where provisioned_at is null and committed_at is null"
+func (pg *postgres) getAccountsForProvisioning(ctx context.Context) ([]AccountProvision, error) {
+	query := "select identity.id as identity_id, first_name, last_name, email, account.id as account_id, username, system_id" +
+		" from account join identity on identity.id = identity_id where provisioned_at is null and committed_at is null"
 
 	rows, err := pg.db.Query(ctx, query)
 
@@ -59,22 +55,18 @@ func (pg *postgres) getAccountsForProvisioning(ctx context.Context) ([]Account, 
 		log.Printf("Error while getting accounts for provisioning, %s", err)
 	}
 
-	accounts := []Account{}
-	for rows.Next() {
-		account := Account{}
-		err := rows.Scan(&account.ID, &account.SystemId, &account.IdentityId, &account.CreatedAt, &account.ProvisionedAt, &account.CommittedAt)
+	accounts, err := pgx.CollectRows(rows, pgx.RowToStructByName[AccountProvision])
 
-		if err != nil {
-			return nil, fmt.Errorf("unable to scan row: %w", err)
-		}
-		accounts = append(accounts, account)
+	if err != nil {
+		return nil, fmt.Errorf("error while collecting rows to accounts: %w", err)
 	}
 
 	return accounts, nil
 }
 
-func (pg *postgres) getAccountsForRetryProvisioning(ctx context.Context) ([]Account, error) {
-	query := "select * from account where provisioned_at < now() - interval '1 minutes' and committed_at is null"
+func (pg *postgres) getAccountsForRetryProvisioning(ctx context.Context) ([]AccountProvision, error) {
+	query := "select identity.id as identity_id, first_name, last_name, email, account.id as account_id, username, system_id" +
+		" from account join identity on identity.id = identity_id where provisioned_at < now() - interval '1 minutes' and committed_at is null"
 
 	rows, err := pg.db.Query(ctx, query)
 
@@ -82,15 +74,10 @@ func (pg *postgres) getAccountsForRetryProvisioning(ctx context.Context) ([]Acco
 		log.Printf("Error while getting accounts for retry provisioning, %s", err)
 	}
 
-	accounts := []Account{}
-	for rows.Next() {
-		account := Account{}
-		err := rows.Scan(&account.ID, &account.SystemId, &account.IdentityId, &account.CreatedAt, &account.ProvisionedAt, &account.CommittedAt)
+	accounts, err := pgx.CollectRows(rows, pgx.RowToStructByName[AccountProvision])
 
-		if err != nil {
-			return nil, fmt.Errorf("unable to scan row: %w", err)
-		}
-		accounts = append(accounts, account)
+	if err != nil {
+		return nil, fmt.Errorf("unable to scan row: %w", err)
 	}
 
 	return accounts, nil

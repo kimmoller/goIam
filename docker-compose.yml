@@ -4,7 +4,6 @@ services:
     container_name: iam-core-db
     image: postgres:16.2-alpine
     restart: always
-    network_mode: host
     environment:
       POSTGRES_USER: iamcore
       POSTGRES_DB: iamcore
@@ -17,31 +16,43 @@ services:
       timeout: 10s
       retries: 5
       start_period: 10s
+    networks:
+      - iam-network
+    ports:
+      - 9080:5432
 
   message-broker:
     container_name: iam-message-broker
     image: rabbitmq:3-management-alpine
-    network_mode: host
     volumes:
       - ${HOME}/dev-rabbitmq/data/:/var/lib/rabbitmq
       - ${HOME}/dev-rabbitmq/log/:/var/log/rabbitmq
     restart: always
+    networks:
+      - iam-network
+    ports:
+      - 5672:5672
+      - 15672:15672
 
   keydloak-db:
     container_name: iam-keycloak-db
     image: postgres:16.2-alpine
     restart: always
-    network_mode: host
     environment:
       POSTGRES_DB: iamkeycloak
       POSTGRES_USER: iamkeycloak
       POSTGRES_PASSWORD: iamkeycloak
+    volumes:
+    - iam-keycloak-data:/var/lib/postgresql/data
+    networks:
+      - iam-network
+    ports:
+      - 9081:5432
 
   keycloak:
     depends_on:
       - keydloak-db
     container_name: iam-keycloak
-    network_mode: host
     environment:
       KEYCLOAK_ADMIN: "admin"
       KEYCLOAK_ADMIN_PASSWORD: "admin"
@@ -51,10 +62,16 @@ services:
       DB_USER: iamkeycloak
       DB_PASSWORD: iamkeycloak
     image: quay.io/keycloak/keycloak:24.0.3
-    ports:
-      - "28080:8080"
     restart: always
     command: start-dev
+    networks:
+      - iam-network
+    ports:
+      - 8080:8080
  
 volumes:
   iam-core-data:
+  iam-keycloak-data:
+
+networks:
+  iam-network:

@@ -17,7 +17,7 @@ func failOnError(err error, msg string) {
 }
 
 func connect() (*amqp.Connection, *amqp.Channel) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 
 	channel, err := conn.Channel()
@@ -31,16 +31,6 @@ func syncAccounts() {
 	defer conn.Close()
 	defer channel.Close()
 
-	queue, err := channel.QueueDeclare(
-		"accountProvision",
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	failOnError(err, "Failed to declare a queue")
-
 	for {
 		accounts, err := pgInstance.getAccountsForProvisioning(context.Background())
 		retryAccounts, retryErr := pgInstance.getAccountsForRetryProvisioning(context.Background())
@@ -53,10 +43,20 @@ func syncAccounts() {
 				log.Printf("Syncing %s accounts", fmt.Sprint(len(accounts)))
 			}
 			for i := range accounts {
-				body, err := json.Marshal(accounts[i])
+				account := accounts[i]
+				body, err := json.Marshal(account)
 				if err != nil {
 					log.Printf("Error in json marshal: %s", err)
 				} else {
+					queue, err := channel.QueueDeclare(
+						"accountProvision_"+account.SystemId.String,
+						false,
+						false,
+						false,
+						false,
+						nil,
+					)
+					failOnError(err, "Failed to declare a queue")
 					err = channel.PublishWithContext(context.Background(),
 						"",         // exchange
 						queue.Name, // routing key
@@ -69,7 +69,7 @@ func syncAccounts() {
 					if err != nil {
 						log.Printf("Error while sending message: %s", err)
 					} else {
-						pgInstance.markAccountAsProvisioned(accounts[i].ID)
+						pgInstance.markAccountAsProvisioned(accounts[i].AccountID)
 					}
 				}
 			}
@@ -108,9 +108,9 @@ func commitAccounts() {
 
 		for message := range messages {
 			log.Printf("Received a message: %s", message.Body)
-			var account Account
+			var account AccountProvision
 			json.Unmarshal(message.Body, &account)
-			pgInstance.markAccountAsCommitted(account.ID)
+			pgInstance.markAccountAsCommitted(account.AccountID)
 		}
 
 		time.Sleep(1 * time.Second)

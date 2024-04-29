@@ -13,7 +13,7 @@ func getIdentityAccounts(c *gin.Context) {
 	accounts, err := pgInstance.getIdentityAccountsFromDb(context.Background(), identityId)
 
 	if err != nil {
-		log.Printf("Accounts not found %s", err)
+		log.Printf("Error while fetching accounts: %s", err)
 		c.IndentedJSON(http.StatusNotFound, err)
 	} else {
 		c.IndentedJSON(http.StatusOK, accounts)

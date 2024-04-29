@@ -10,13 +10,14 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
-type Account struct {
-	ID            null.String `json:"id"`
-	SystemId      null.String `json:"systemId"`
-	IdentityId    null.String `json:"identityId"`
-	CreatedAt     null.Time   `json:"createdAt"`
-	ProvisionedAt null.Time   `json:"provisionedAt"`
-	CommittedAt   null.Time   `json:"committedAt"`
+type AccountProvision struct {
+	IdentityID string      `json:"identityId"`
+	FirstName  string      `json:"firstName"`
+	LastName   string      `json:"lastName"`
+	Email      string      `json:"email"`
+	AccountID  null.String `json:"accountId"`
+	Username   null.String `json:"username"`
+	SystemId   null.String `json:"systemId"`
 }
 
 func failOnError(err error, msg string) {
@@ -26,14 +27,14 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-	client := gocloak.NewClient("http://localhost:8080")
+	client := gocloak.NewClient("http://0.0.0.0:8080")
 	ctx := context.Background()
 	token, err := client.LoginAdmin(ctx, "keycloak-handler", "keycloak", "private")
 	if err != nil {
 		panic("Something wrong with the credentials or url")
 	}
 
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -42,7 +43,7 @@ func main() {
 	defer channel.Close()
 
 	queue, err := channel.QueueDeclare(
-		"accountProvision",
+		"accountProvision_keycloak_private",
 		false,
 		false,
 		false,
@@ -67,15 +68,20 @@ func main() {
 		for message := range messages {
 			log.Printf("Received a message: %s", message.Body)
 
-			var account Account
+			var account AccountProvision
 			err := json.Unmarshal(message.Body, &account)
 
 			if err != nil {
 				log.Println(err)
 			} else {
+				requiredActions := []string{"UPDATE_PASSWORD", "VERIFY_EMAIL"}
 				user := gocloak.User{
-					Enabled:  gocloak.BoolP(true),
-					Username: gocloak.StringP(account.ID.String + "_username"),
+					Enabled:         gocloak.BoolP(true),
+					FirstName:       gocloak.StringP(account.FirstName),
+					LastName:        gocloak.StringP(account.LastName),
+					Email:           gocloak.StringP(account.Email),
+					Username:        gocloak.StringP(account.Username.String),
+					RequiredActions: &requiredActions,
 				}
 
 				_, err = client.CreateUser(ctx, token.AccessToken, "private", user)

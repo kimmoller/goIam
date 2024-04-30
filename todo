@@ -1,7 +1,4 @@
-Provision accounts as disabled
-Enable with a separate enabling process
 
-Add disable/delete processes
 
 Add test cases
 
@@ -19,3 +16,6 @@ Add rights to groups
 (group gives access to private keycloak account)
 Provision accounts based on identity groups
 Add account enable/disable
+Provision accounts as disabled
+Enable with a separate enabling process
+Add disable/delete processes

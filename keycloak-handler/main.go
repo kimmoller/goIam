@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"log"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -26,27 +24,18 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func main() {
-	client := gocloak.NewClient("http://0.0.0.0:8080")
-	ctx := context.Background()
-
-	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer conn.Close()
-
-	channel, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
-	defer channel.Close()
-
+func consumeQueueu(channel *amqp.Channel, queueName string) <-chan amqp.Delivery {
 	queue, err := channel.QueueDeclare(
-		"accountProvision_keycloak_private",
+		queueName,
 		false,
 		false,
 		false,
 		false,
 		nil,
 	)
-	failOnError(err, "Failed to declare a queue")
+	if err != nil {
+		log.Printf("Failed to declare queue %s, %s", queueName, err)
+	}
 	messages, err := channel.Consume(
 		queue.Name,
 		"",
@@ -56,53 +45,51 @@ func main() {
 		false,
 		nil,
 	)
-	failOnError(err, "Failed to register a consumer")
+	if err != nil {
+		log.Printf("Failed to register consumer for queue %s, %s", queueName, err)
+	}
+	return messages
+}
+
+func main() {
+	client := gocloak.NewClient("http://0.0.0.0:8080")
+
+	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672/")
+	failOnError(err, "Failed to connect to RabbitMQ")
+	defer conn.Close()
+
+	channel, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer channel.Close()
+
+	createMessages := consumeQueueu(channel, "accountCreate_keycloak_private")
+	enableMessages := consumeQueueu(channel, "accountEnable_keycloak_private")
+	disableMessages := consumeQueueu(channel, "accountDisable_keycloak_private")
+	deleteMessages := consumeQueueu(channel, "accountDelete_keycloak_private")
 
 	var forever chan struct{}
 
 	go func() {
-		for message := range messages {
-			log.Printf("Received a message: %s", message.Body)
+		for message := range createMessages {
+			createAccount(client, channel, &message)
+		}
+	}()
 
-			var account AccountProvision
-			err := json.Unmarshal(message.Body, &account)
+	go func() {
+		for message := range enableMessages {
+			enableAccount(client, channel, &message)
+		}
+	}()
 
-			if err != nil {
-				log.Println(err)
-			} else {
-				requiredActions := []string{"UPDATE_PASSWORD", "VERIFY_EMAIL"}
-				user := gocloak.User{
-					Enabled:         gocloak.BoolP(true),
-					FirstName:       gocloak.StringP(account.FirstName),
-					LastName:        gocloak.StringP(account.LastName),
-					Email:           gocloak.StringP(account.Email),
-					Username:        gocloak.StringP(account.Username.String),
-					RequiredActions: &requiredActions,
-				}
+	go func() {
+		for message := range disableMessages {
+			disableAccount(client, channel, &message)
+		}
+	}()
 
-				token, err := client.LoginAdmin(ctx, "keycloak-handler", "keycloak", "private")
-				if err != nil {
-					panic("Something wrong with the credentials or url")
-				}
-				_, err = client.CreateUser(ctx, token.AccessToken, "private", user)
-
-				if err != nil {
-					log.Printf("Error while creating user, %s", err)
-				} else {
-					err = channel.PublishWithContext(context.Background(),
-						"",              // exchange
-						"accountCommit", // routing key
-						false,           // mandatory
-						false,           // immediate
-						amqp.Publishing{
-							ContentType: "text/plain",
-							Body:        []byte(message.Body),
-						})
-					if err != nil {
-						log.Printf("Error while sending message: %s", err)
-					}
-				}
-			}
+	go func() {
+		for message := range deleteMessages {
+			deleteAccount(client, channel, &message)
 		}
 	}()
 

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,13 +15,6 @@ func createGroupMembership(ctx *gin.Context) {
 		log.Print(err)
 		return
 	}
-
-	log.Printf("Create membership for identity %s with group %s, enabledAt %s, disabledAt %s and deleteAt %s",
-		createGroupMembershipDto.IdentityId,
-		createGroupMembershipDto.GroupId,
-		createGroupMembershipDto.EnabledAt,
-		createGroupMembershipDto.DisabledAt.Time,
-		createGroupMembershipDto.DeletedAt.Time)
 
 	systemIds, err := pgInstance.getGroupPermissions(ctx, createGroupMembershipDto.GroupId)
 	if err != nil {
@@ -40,7 +34,7 @@ func createGroupMembership(ctx *gin.Context) {
 	for index := range systemIds {
 		account := CreateAccount{
 			identityId: identityId,
-			username:   identity.firstName + identity.lastName,
+			username:   strings.ToLower(identity.firstName + identity.lastName),
 			systemId:   systemIds[index],
 			enabledAt:  createGroupMembershipDto.EnabledAt,
 			disabledAt: createGroupMembershipDto.DisabledAt,

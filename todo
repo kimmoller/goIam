@@ -1,4 +1,10 @@
+Add membership update(enable,disable) and delete
+(with effect to account lifecycle)
 
+Add small delete delay for account?
+
+When creating membership, check if there is an existing account to re-enable
+With multiple existing memberships, changing enable time and re-enable might not be necessary
 
 Add test cases
 

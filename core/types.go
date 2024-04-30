@@ -22,6 +22,14 @@ type CreateAccount struct {
 	deletedAt  null.Time
 }
 
+type UpdateAccount struct {
+	identityId string
+	systemId   string
+	enabledAt  time.Time
+	disabledAt null.Time
+	deletedAt  null.Time
+}
+
 type AccountProvision struct {
 	IdentityID string      `json:"identityId"`
 	FirstName  string      `json:"firstName"`
@@ -32,7 +40,7 @@ type AccountProvision struct {
 	SystemId   null.String `json:"systemId"`
 }
 
-type CreateGroupMembership struct {
+type GroupMembershipDto struct {
 	IdentityId string    `json:"identityId"`
 	GroupId    string    `json:"groupId"`
 	EnabledAt  time.Time `json:"enabledAt"`

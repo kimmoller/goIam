@@ -19,16 +19,3 @@ func getIdentityAccounts(c *gin.Context) {
 		c.IndentedJSON(http.StatusOK, accounts)
 	}
 }
-
-func createAccount(c *gin.Context) {
-	var account CreateAccount
-
-	if err := c.BindJSON(&account); err != nil {
-		log.Print(err)
-		return
-	}
-
-	pgInstance.insertAccount(context.Background(), account)
-
-	c.IndentedJSON(http.StatusCreated, account)
-}

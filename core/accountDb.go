@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"gopkg.in/guregu/null.v3"
 )
@@ -14,6 +15,29 @@ func (pg *postgres) getIdentityAccountsFromDb(ctx context.Context, identityId st
 
 	args := pgx.NamedArgs{
 		"identityId": identityId,
+	}
+
+	rows, err := pg.db.Query(ctx, query, args)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to get identity %s accounts, %w", identityId, err)
+	}
+
+	accounts, err := pgx.CollectRows(rows, pgx.RowToStructByName[Account])
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to scan row: %w", err)
+	}
+
+	return accounts, nil
+}
+
+func (pg *postgres) getIdentityAccountsForSystemIdFromDb(ctx context.Context, identityId string, systemIds []string) ([]Account, error) {
+	query := "select * from account where identity_id = @identityId and system_id in @systemId"
+
+	args := pgx.NamedArgs{
+		"identityId": identityId,
+		"systemId":   systemIds,
 	}
 
 	rows, err := pg.db.Query(ctx, query, args)
@@ -46,6 +70,30 @@ func (pg *postgres) insertAccount(ctx context.Context, account CreateAccount) {
 	_, err := pg.db.Exec(ctx, query, args)
 	if err != nil {
 		log.Printf("Unable to insert row: %s", err)
+	}
+}
+
+func (pg *postgres) updateAccount(ctx *gin.Context, updateAccount UpdateAccount, reEnable bool) {
+	reEnableSubQuery := ""
+	if reEnable {
+		reEnableSubQuery = "set enable_provisioned_at = null, enable_committed_at = null, disable_provisioned_at = null, disable_committed_at = null"
+	}
+
+	query := "update account set enabled_at = @enabled_at @reEnable, disabled_at @disabledAt, deleted_at = @deletedAt" +
+		" where identityId = @identityId and systemId = @systemId"
+	args := pgx.NamedArgs{
+		"enabledAt":  updateAccount.enabledAt,
+		"reEnable":   reEnableSubQuery,
+		"disabledAt": updateAccount.disabledAt,
+		"deletedAt":  updateAccount.deletedAt,
+		"identityId": updateAccount.identityId,
+		"systemId":   updateAccount.systemId,
+	}
+
+	_, err := pg.db.Exec(ctx, query, args)
+
+	if err != nil {
+		log.Printf("Error while updating account %s for identity %s, %s", updateAccount.systemId, updateAccount.identityId, err)
 	}
 }
 

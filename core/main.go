@@ -18,9 +18,9 @@ func main() {
 	router.POST("/identity", createIdentity)
 
 	router.GET("/account/:identityId", getIdentityAccounts)
-	router.POST("/account", createAccount)
 
 	router.POST("/membership", createGroupMembership)
+	router.PATCH("/membership/:id", updateGroupMembership)
 
 	go syncAccounts()
 	go commitAccounts()

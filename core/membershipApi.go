@@ -35,7 +35,7 @@ func createGroupMembership(ctx *gin.Context) {
 	for index := range systemIds {
 		account := CreateAccount{
 			identityId: identityId,
-			username:   strings.ToLower(identity.firstName + identity.lastName),
+			username:   strings.ToLower(identity.FirstName + identity.LastName),
 			systemId:   systemIds[index],
 			enabledAt:  createGroupMembershipDto.EnabledAt,
 			disabledAt: createGroupMembershipDto.DisabledAt,

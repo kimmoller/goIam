@@ -10,14 +10,14 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (pg *postgres) getIdentityFromDb(ctx context.Context, identityId string) (*SimpleIdentity, error) {
+func (pg *postgres) getIdentityFromDb(ctx context.Context, identityId string) (*Identity, error) {
 	query := "select * from identity where id=@identityId"
 	args := pgx.NamedArgs{
 		"identityId": identityId,
 	}
 	row := pg.db.QueryRow(ctx, query, args)
-	var identity SimpleIdentity
-	err := row.Scan(&identity.id, &identity.firstName, &identity.lastName, &identity.email)
+	var identity Identity
+	err := row.Scan(&identity.ID, &identity.FirstName, &identity.LastName, &identity.Email)
 
 	if err != nil {
 		return nil, fmt.Errorf("error while scanning identity %s, %w", identityId, err)
@@ -27,7 +27,20 @@ func (pg *postgres) getIdentityFromDb(ctx context.Context, identityId string) (*
 }
 
 func (pg *postgres) getIdentitiesFromDb(ctx context.Context) ([]Identity, error) {
-	query := "select * from identity left join account on identity.id=identity_id"
+	query := "select * from identity"
+	rows, err := pg.db.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching identities %w", err)
+	}
+	identities, err := pgx.CollectRows(rows, pgx.RowToStructByName[Identity])
+	if err != nil {
+		return nil, fmt.Errorf("error while scanning identities %w", err)
+	}
+	return identities, nil
+}
+
+func (pg *postgres) getExtendedIdentitiesFromDb(ctx context.Context) ([]ExtendedIdentity, error) {
+	query := "select * from identity"
 
 	rows, err := pg.db.Query(ctx, query)
 
@@ -36,17 +49,48 @@ func (pg *postgres) getIdentitiesFromDb(ctx context.Context) ([]Identity, error)
 		return nil, err
 	}
 
-	identities := []Identity{}
-	for rows.Next() {
-		identity := Identity{}
-		err := rows.Scan(&identity.ID, &identity.FirstName, &identity.LastName, &identity.Email,
-			&identity.Account.ID, &identity.Account.Username, &identity.Account.SystemId, &identity.Account.IdentityId,
-			&identity.Account.CreatedAt, &identity.Account.ProvisionedAt, &identity.Account.CommittedAt)
-
-		if err != nil {
-			return nil, fmt.Errorf("unable to scan row: %w", err)
+	identities := []ExtendedIdentity{}
+	var identity Identity
+	_, err = pgx.ForEachRow(rows, []any{&identity.ID, &identity.FirstName, &identity.LastName, &identity.Email}, func() error {
+		log.Printf("Test: %s", identity.ID)
+		accountQuery := "select * from account where identity_id = @identityId"
+		args := pgx.NamedArgs{
+			"identityId": identity.ID,
 		}
-		identities = append(identities, identity)
+		accountRows, err := pg.db.Query(ctx, accountQuery, args)
+		if err != nil {
+			return fmt.Errorf("error while fetching identity %s accounts, %w", identity.ID, err)
+		}
+		accounts, err := pgx.CollectRows(accountRows, pgx.RowToStructByName[Account])
+		if err != nil {
+			return fmt.Errorf("error while scanning identity %s accounts, %w", identity.ID, err)
+		}
+
+		membershipQuery := "select * from group_membership where identity_id = @identityId"
+		membershipRows, err := pg.db.Query(ctx, membershipQuery, args)
+		if err != nil {
+			return fmt.Errorf("error while fetching identity %s memberships, %w", identity.ID, err)
+		}
+		memberships, err := pgx.CollectRows(membershipRows, pgx.RowToStructByName[GroupMembership])
+		if err != nil {
+			return fmt.Errorf("error while scanning identity %s memberships, %w", identity.ID, err)
+		}
+
+		extendedIdentity := ExtendedIdentity{
+			ID:          identity.ID,
+			FirstName:   identity.FirstName,
+			LastName:    identity.LastName,
+			Email:       identity.Email,
+			Accounts:    accounts,
+			Memberships: memberships,
+		}
+
+		identities = append(identities, extendedIdentity)
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching extended identities %w", err)
 	}
 
 	return identities, nil

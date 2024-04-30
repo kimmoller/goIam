@@ -1,5 +1,4 @@
-Add membership update(enable,disable) and delete
-(with effect to account lifecycle)
+Add unique constraint for account identity_id and system_id
 
 Add small delete delay for account?
 
@@ -25,3 +24,5 @@ Add account enable/disable
 Provision accounts as disabled
 Enable with a separate enabling process
 Add disable/delete processes
+Add membership update(enable,disable) and delete
+(with effect to account lifecycle)

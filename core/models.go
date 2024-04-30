@@ -7,11 +7,19 @@ import (
 )
 
 type Identity struct {
-	ID        string  `json:"id"`
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
-	Email     string  `json:"email"`
-	Account   Account `json:"account"`
+	ID        string `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+}
+
+type ExtendedIdentity struct {
+	ID          string            `json:"id"`
+	FirstName   string            `json:"firstName"`
+	LastName    string            `json:"lastName"`
+	Email       string            `json:"email"`
+	Accounts    []Account         `json:"accounts"`
+	Memberships []GroupMembership `json:"memberships"`
 }
 
 type Account struct {
@@ -33,11 +41,6 @@ type Account struct {
 	DeleteCommittedAt    null.Time   `json:"deleteCommittedAt"`
 }
 
-type Permission struct {
-	id       string
-	systemId string
-}
-
 type PermissionGroup struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -50,19 +53,11 @@ type PermissionToGroup struct {
 }
 
 type GroupMembership struct {
-	ID                   string    `json:"id"`
-	GroupId              string    `json:"groupId"`
-	IdentityId           string    `json:"identityId"`
-	CreatedAt            time.Time `json:"createdAt"`
-	ProvisionedAt        null.Time `json:"provisionedAt"`
-	CommittedAt          null.Time `json:"committedAt"`
-	EnabledAt            time.Time `json:"enabledAt"`
-	EnableProvisionedAt  null.Time `json:"enableProvisionedAt"`
-	EnableCommittedAt    null.Time `json:"enableCommittedAt"`
-	DisabledAt           null.Time `json:"disabledAt"`
-	DisableProvisionedAt null.Time `json:"disableProvisionedAt"`
-	DisableCommittedAt   null.Time `json:"disableCommittedAt"`
-	DeletedAt            null.Time `json:"deletedAt"`
-	DeleteProvisionedAt  null.Time `json:"deleteProvisionedAt"`
-	DeleteCommittedAt    null.Time `json:"deleteCommittedAt"`
+	ID         string    `json:"id"`
+	GroupId    string    `json:"groupId"`
+	IdentityId string    `json:"identityId"`
+	CreatedAt  time.Time `json:"createdAt"`
+	EnabledAt  time.Time `json:"enabledAt"`
+	DisabledAt null.Time `json:"disabledAt"`
+	DeletedAt  null.Time `json:"deletedAt"`
 }

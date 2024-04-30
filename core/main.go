@@ -17,6 +17,8 @@ func main() {
 	router.GET("/identity", getIdentities)
 	router.POST("/identity", createIdentity)
 
+	router.GET("/extendedIdentities", getExtendedIdentities)
+
 	router.GET("/account/:identityId", getIdentityAccounts)
 
 	router.POST("/membership", createGroupMembership)

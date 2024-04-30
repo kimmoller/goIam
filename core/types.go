@@ -6,13 +6,6 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
-type SimpleIdentity struct {
-	id        string
-	firstName string
-	lastName  string
-	email     string
-}
-
 type CreateAccount struct {
 	identityId string
 	username   string

@@ -10,7 +10,7 @@ func main() {
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{"Origin"},
+		AllowHeaders: []string{"Origin", "Content-type"},
 	}))
 
 	router.GET("/identity", getIdentities)

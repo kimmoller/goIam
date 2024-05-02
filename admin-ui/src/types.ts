@@ -14,14 +14,14 @@ type Account = {
 };
 
 type Group = {
-    id: string,
-    name: string,
+    id: string;
+    name: string;
 }
 
 type Membership = {
-    id: string,
-    identityId: string,
-    group: Group,
+    id: string;
+    identityId: string;
+    group: Group;
     enabledAt: string;
     disabledAt: string;
 };
@@ -34,3 +34,16 @@ type ExtendedIdentity = {
     accounts: Account[];
     memberships: Membership[];
 };
+
+type CreateIdentity = {
+    firstName: string;
+    lastName: string;
+    email: string;
+}
+
+type CreateMembership = {
+    identityId: string;
+    groupId: string;
+    enabledAt: string;
+    disabledAt: string | null;
+}

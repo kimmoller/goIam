@@ -7,7 +7,12 @@ Add test cases
 
 Add import-service for external identity/account provisioning
 
-Add UI for account management
+Add UI for account management {
+    Add keycloak login
+    Add proper error handling
+    Add test cases
+    Add styles
+}
 
 Add delete account to core to clean up accounts that have been committed for delete
 

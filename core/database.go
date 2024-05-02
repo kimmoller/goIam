@@ -41,7 +41,7 @@ func (pg *postgres) Close() {
 
 func migratedb(url string) {
 	m, err := migrate.New(
-		"file://db/migrations",
+		"file://core/db/migrations",
 		url+"?sslmode=disable")
 	if err != nil {
 		log.Print(err)

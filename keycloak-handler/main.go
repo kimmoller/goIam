@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/Nerzal/gocloak/v13"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -52,9 +53,9 @@ func consumeQueueu(channel *amqp.Channel, queueName string) <-chan amqp.Delivery
 }
 
 func main() {
-	client := gocloak.NewClient("http://0.0.0.0:8080")
+	client := gocloak.NewClient(os.Getenv("KEYCLOAK_URL"))
 
-	conn, err := amqp.Dial("amqp://guest:guest@0.0.0.0:5672/")
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 

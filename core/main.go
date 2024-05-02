@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	dbUrl := "postgres://iamcore:iamcore@0.0.0.0:9080/iamcore"
+	dbUrl := os.Getenv("DB_URL")
 
 	migratedb(dbUrl)
 	NewPG(context.Background(), dbUrl)

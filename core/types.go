@@ -47,7 +47,6 @@ type GroupMembershipDto struct {
 	GroupId    string    `json:"groupId"`
 	EnabledAt  time.Time `json:"enabledAt"`
 	DisabledAt null.Time `json:"disabledAt"`
-	DeletedAt  null.Time `json:"deletedAt"`
 }
 
 type GroupMembershipWithGroup struct {
@@ -56,5 +55,4 @@ type GroupMembershipWithGroup struct {
 	Group      PermissionGroup `json:"group"`
 	EnabledAt  time.Time       `json:"enabledAt"`
 	DisabledAt null.Time       `json:"disabledAt"`
-	DeletedAt  null.Time       `json:"deletedAt"`
 }

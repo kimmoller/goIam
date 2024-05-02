@@ -1,7 +1,5 @@
 Add unique constraint for account identity_id and system_id
 
-Add small delete delay for account?
-
 When creating membership, check if there is an existing account to re-enable
 With multiple existing memberships, changing enable time and re-enable might not be necessary
 
@@ -11,6 +9,7 @@ Add import-service for external identity/account provisioning
 
 Add UI for account management
 
+Add delete account to core to clean up accounts that have been committed for delete
 
 DONE:
 Messages to handlers based on system_id
@@ -26,3 +25,4 @@ Enable with a separate enabling process
 Add disable/delete processes
 Add membership update(enable,disable) and delete
 (with effect to account lifecycle)
+Add small delete delay for account?

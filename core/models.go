@@ -50,5 +50,4 @@ type GroupMembership struct {
 	CreatedAt  time.Time `json:"createdAt"`
 	EnabledAt  time.Time `json:"enabledAt"`
 	DisabledAt null.Time `json:"disabledAt"`
-	DeletedAt  null.Time `json:"deletedAt"`
 }

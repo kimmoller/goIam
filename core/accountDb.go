@@ -279,7 +279,7 @@ func (pg *postgres) markAccountAsCommitted(id null.String) {
 	_, err := pg.db.Exec(context.Background(), query, args)
 
 	if err != nil {
-		log.Printf("Failed to mark account as provisioned: %s", err)
+		log.Printf("Failed to mark account as committed: %s", err)
 	}
 }
 
@@ -307,7 +307,7 @@ func (pg *postgres) markAccountEnableAsCommitted(id null.String) {
 	_, err := pg.db.Exec(context.Background(), query, args)
 
 	if err != nil {
-		log.Printf("Failed to mark account as provisioned: %s", err)
+		log.Printf("Failed to mark account as committed: %s", err)
 	}
 }
 
@@ -335,7 +335,7 @@ func (pg *postgres) markAccountDisableAsCommitted(id null.String) {
 	_, err := pg.db.Exec(context.Background(), query, args)
 
 	if err != nil {
-		log.Printf("Failed to mark account as provisioned: %s", err)
+		log.Printf("Failed to mark account as committed: %s", err)
 	}
 }
 
@@ -363,6 +363,6 @@ func (pg *postgres) markAccountDeleteAsCommitted(id null.String) {
 	_, err := pg.db.Exec(context.Background(), query, args)
 
 	if err != nil {
-		log.Printf("Failed to mark account as provisioned: %s", err)
+		log.Printf("Failed to mark account as committed: %s", err)
 	}
 }

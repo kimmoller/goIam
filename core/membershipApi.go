@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gopkg.in/guregu/null.v3"
 )
 
 func createGroupMembership(ctx *gin.Context) {
@@ -33,13 +34,18 @@ func createGroupMembership(ctx *gin.Context) {
 
 	// TODO: Add check for existing accounts
 	for index := range systemIds {
+		var deleteTime null.Time
+		if createGroupMembershipDto.DisabledAt.Valid {
+			deleteTime.Valid = true
+			deleteTime.Time = createGroupMembershipDto.DisabledAt.Time.AddDate(0, 0, 7)
+		}
 		account := CreateAccount{
 			identityId: identityId,
 			username:   strings.ToLower(identity.FirstName + identity.LastName),
 			systemId:   systemIds[index],
 			enabledAt:  createGroupMembershipDto.EnabledAt,
 			disabledAt: createGroupMembershipDto.DisabledAt,
-			deletedAt:  createGroupMembershipDto.DeletedAt,
+			deletedAt:  deleteTime,
 		}
 		pgInstance.insertAccount(ctx, account)
 	}
@@ -83,7 +89,6 @@ func updateGroupMembership(ctx *gin.Context) {
 			systemId:   account.SystemId.String,
 			enabledAt:  groupMembershipDto.EnabledAt,
 			disabledAt: groupMembershipDto.DisabledAt,
-			deletedAt:  groupMembershipDto.DeletedAt,
 		}
 		// TODO: Add validation here to only re-enable account when necessary
 		pgInstance.updateAccount(ctx, updateAccount, true)

@@ -10,13 +10,12 @@ import (
 
 func (pg *postgres) insertMembership(ctx *gin.Context, createGroupMembershipDto GroupMembershipDto) error {
 	query := "insert into group_membership(identity_id, group_id, enabled_at, disabled_at, deleted_at)" +
-		" values (@identityId, @groupId, @enabledAt, @disabledAt, @deletedAt)"
+		" values (@identityId, @groupId, @enabledAt, @disabledAt)"
 	args := pgx.NamedArgs{
 		"identityId": createGroupMembershipDto.IdentityId,
 		"groupId":    createGroupMembershipDto.GroupId,
 		"enabledAt":  createGroupMembershipDto.EnabledAt,
 		"disabledAt": createGroupMembershipDto.DisabledAt,
-		"deletedAt":  createGroupMembershipDto.DeletedAt,
 	}
 
 	_, err := pg.db.Exec(ctx, query, args)
@@ -30,11 +29,10 @@ func (pg *postgres) insertMembership(ctx *gin.Context, createGroupMembershipDto 
 }
 
 func (pg *postgres) updateMembership(ctx *gin.Context, groupMembershipId string, groupMembershipDto GroupMembershipDto) {
-	query := "update group_membership set enabled_at = @enabled_at, disabled_at @disabledAt, deleted_at = @deletedAt where id = @id"
+	query := "update group_membership set enabled_at = @enabled_at, disabled_at @disabledAt where id = @id"
 	args := pgx.NamedArgs{
 		"enabledAt":  groupMembershipDto.EnabledAt,
 		"disabledAt": groupMembershipDto.DisabledAt,
-		"deletedAt":  groupMembershipDto.DeletedAt,
 		"id":         groupMembershipId,
 	}
 

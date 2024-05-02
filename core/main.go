@@ -18,9 +18,10 @@ func main() {
 	router.GET("/identity", getIdentities)
 	router.POST("/identity", createIdentity)
 
-	router.GET("/extendedIdentities", getExtendedIdentities)
+	router.GET("/extendedIdentity", getExtendedIdentities)
+	router.GET("/extendedIdentity/:id", getExtendedIdentity)
 
-	router.GET("/account/:identityId", getIdentityAccounts)
+	router.GET("/account/:id", getIdentityAccounts)
 
 	router.POST("/membership", createGroupMembership)
 	router.PATCH("/membership/:id", updateGroupMembership)

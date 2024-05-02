@@ -39,10 +39,25 @@ func (pg *postgres) getIdentitiesFromDb(ctx context.Context) ([]Identity, error)
 	return identities, nil
 }
 
+func (pg *postgres) getExtendedIdentityFromDb(ctx context.Context, identityId string) (*ExtendedIdentity, error) {
+	query := "select * from identity where id = @identityId"
+	args := pgx.NamedArgs{
+		"identityId": identityId,
+	}
+	identities, err := pg.getExtendedIdentitiesFromDbWithQuery(ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching identity %s, %w", identityId, err)
+	}
+	return &identities[0], nil
+}
+
 func (pg *postgres) getExtendedIdentitiesFromDb(ctx context.Context) ([]ExtendedIdentity, error) {
 	query := "select * from identity"
+	return pg.getExtendedIdentitiesFromDbWithQuery(ctx, query, nil)
+}
 
-	rows, err := pg.db.Query(ctx, query)
+func (pg *postgres) getExtendedIdentitiesFromDbWithQuery(ctx context.Context, query string, args pgx.NamedArgs) ([]ExtendedIdentity, error) {
+	rows, err := pg.db.Query(ctx, query, args)
 
 	if err != nil {
 		log.Printf("Unable to get identities, %s", err)

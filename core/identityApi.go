@@ -29,6 +29,17 @@ func getExtendedIdentities(c *gin.Context) {
 	}
 }
 
+func getExtendedIdentity(c *gin.Context) {
+	identityId := c.Param("id")
+	identity, err := pgInstance.getExtendedIdentityFromDb(c, identityId)
+	if err != nil {
+		log.Printf("Identity %s not found %s", identityId, err)
+		c.IndentedJSON(http.StatusNotFound, err)
+	} else {
+		c.IndentedJSON(http.StatusOK, identity)
+	}
+}
+
 func createIdentity(c *gin.Context) {
 	var identity Identity
 

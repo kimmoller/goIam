@@ -110,6 +110,22 @@ services:
     environment:
       KEYCLOAK_URL: http://iam-keycloak:8080
       RABBITMQ_URL: amqp://guest:guest@iam-message-broker:5672/
+
+  admin-service:
+    depends_on:
+      - core
+    container_name: iam-admin-service
+    build:
+      dockerfile: ./Dockerfile
+      context: admin-service
+    networks:
+      - iam-network
+    volumes:
+      - .:/app
+    ports:
+      - 8083:8083
+    environment:
+      CORE_URL: http://iam-core:8081/
  
 volumes:
   iam-core-data:

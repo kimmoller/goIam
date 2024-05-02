@@ -67,7 +67,6 @@ func (pg *postgres) getExtendedIdentitiesFromDbWithQuery(ctx context.Context, qu
 	identities := []ExtendedIdentity{}
 	var identity Identity
 	_, err = pgx.ForEachRow(rows, []any{&identity.ID, &identity.FirstName, &identity.LastName, &identity.Email}, func() error {
-		log.Printf("Test: %s", identity.ID)
 		accountQuery := "select * from account where identity_id = @identityId"
 		args := pgx.NamedArgs{
 			"identityId": identity.ID,

@@ -87,7 +87,7 @@ func (pg *postgres) getExtendedIdentitiesFromDbWithQuery(ctx context.Context, qu
 			return fmt.Errorf("error while fetching identity %s memberships, %w", identity.ID, err)
 		}
 
-		var memberships []GroupMembershipWithGroup
+		memberships := []GroupMembershipWithGroup{}
 		for membershipRows.Next() {
 			var membership GroupMembershipWithGroup
 			err := membershipRows.Scan(&membership.ID, &membership.IdentityId, &membership.Group.ID, &membership.Group.Name,

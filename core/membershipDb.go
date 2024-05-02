@@ -9,7 +9,7 @@ import (
 )
 
 func (pg *postgres) insertMembership(ctx *gin.Context, createGroupMembershipDto GroupMembershipDto) error {
-	query := "insert into group_membership(identity_id, group_id, enabled_at, disabled_at, deleted_at)" +
+	query := "insert into group_membership(identity_id, group_id, enabled_at, disabled_at)" +
 		" values (@identityId, @groupId, @enabledAt, @disabledAt)"
 	args := pgx.NamedArgs{
 		"identityId": createGroupMembershipDto.IdentityId,

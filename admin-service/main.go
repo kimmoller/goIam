@@ -15,6 +15,9 @@ func main() {
 
 	router.GET("/identity", getIdentities)
 	router.GET("/identity/:id", getIdentity)
+	router.POST("/identity", createIdentity)
+
+	router.POST("/membership", createMembership)
 
 	router.Run(":8083")
 }

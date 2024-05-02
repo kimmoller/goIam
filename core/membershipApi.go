@@ -13,9 +13,11 @@ func createGroupMembership(ctx *gin.Context) {
 	var createGroupMembershipDto GroupMembershipDto
 
 	if err := ctx.BindJSON(&createGroupMembershipDto); err != nil {
-		log.Print(err)
+		log.Printf("Error while reading response to json, %s", err)
 		return
 	}
+
+	log.Printf("Create group membership for identity %s to group %s", createGroupMembershipDto.IdentityId, createGroupMembershipDto.GroupId)
 
 	systemIds, err := pgInstance.getGroupPermissions(ctx, createGroupMembershipDto.GroupId)
 	if err != nil {

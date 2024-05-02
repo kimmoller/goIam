@@ -6,6 +6,15 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
+type ExtendedIdentity struct {
+	ID          string                     `json:"id"`
+	FirstName   string                     `json:"firstName"`
+	LastName    string                     `json:"lastName"`
+	Email       string                     `json:"email"`
+	Accounts    []Account                  `json:"accounts"`
+	Memberships []GroupMembershipWithGroup `json:"memberships"`
+}
+
 type CreateAccount struct {
 	identityId string
 	username   string
@@ -39,4 +48,13 @@ type GroupMembershipDto struct {
 	EnabledAt  time.Time `json:"enabledAt"`
 	DisabledAt null.Time `json:"disabledAt"`
 	DeletedAt  null.Time `json:"deletedAt"`
+}
+
+type GroupMembershipWithGroup struct {
+	ID         string          `json:"id"`
+	IdentityId string          `json:"identityId"`
+	Group      PermissionGroup `json:"group"`
+	EnabledAt  time.Time       `json:"enabledAt"`
+	DisabledAt null.Time       `json:"disabledAt"`
+	DeletedAt  null.Time       `json:"deletedAt"`
 }

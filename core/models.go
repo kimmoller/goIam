@@ -13,15 +13,6 @@ type Identity struct {
 	Email     string `json:"email"`
 }
 
-type ExtendedIdentity struct {
-	ID          string            `json:"id"`
-	FirstName   string            `json:"firstName"`
-	LastName    string            `json:"lastName"`
-	Email       string            `json:"email"`
-	Accounts    []Account         `json:"accounts"`
-	Memberships []GroupMembership `json:"memberships"`
-}
-
 type Account struct {
 	ID                   null.String `json:"id"`
 	Username             null.String `json:"username"`

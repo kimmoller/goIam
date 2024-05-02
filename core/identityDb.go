@@ -80,14 +80,22 @@ func (pg *postgres) getExtendedIdentitiesFromDbWithQuery(ctx context.Context, qu
 			return fmt.Errorf("error while scanning identity %s accounts, %w", identity.ID, err)
 		}
 
-		membershipQuery := "select * from group_membership where identity_id = @identityId"
+		membershipQuery := "select gm.id, identity_id, pg.id, name, enabled_at, disabled_at, deleted_at from group_membership gm" +
+			" left join permission_group pg on gm.group_id=pg.id where identity_id = @identityId"
 		membershipRows, err := pg.db.Query(ctx, membershipQuery, args)
 		if err != nil {
 			return fmt.Errorf("error while fetching identity %s memberships, %w", identity.ID, err)
 		}
-		memberships, err := pgx.CollectRows(membershipRows, pgx.RowToStructByName[GroupMembership])
-		if err != nil {
-			return fmt.Errorf("error while scanning identity %s memberships, %w", identity.ID, err)
+
+		var memberships []GroupMembershipWithGroup
+		for membershipRows.Next() {
+			var membership GroupMembershipWithGroup
+			err := membershipRows.Scan(&membership.ID, &membership.IdentityId, &membership.Group.ID, &membership.Group.Name,
+				&membership.EnabledAt, &membership.DisabledAt, &membership.DeletedAt)
+			if err != nil {
+				return fmt.Errorf("error while scanning identity %s memberships, %w", identity.ID, err)
+			}
+			memberships = append(memberships, membership)
 		}
 
 		extendedIdentity := ExtendedIdentity{

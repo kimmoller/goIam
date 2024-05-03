@@ -21,8 +21,6 @@ func main() {
 	router.GET("/extendedIdentity", getExtendedIdentities)
 	router.GET("/extendedIdentity/:id", getExtendedIdentity)
 
-	router.GET("/account/:id", getIdentityAccounts)
-
 	router.POST("/membership", createGroupMembership)
 	router.PATCH("/membership/:id", updateGroupMembership)
 

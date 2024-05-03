@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -28,7 +27,7 @@ func (pg *postgres) insertMembership(ctx *gin.Context, createGroupMembershipDto 
 	return nil
 }
 
-func (pg *postgres) updateMembership(ctx *gin.Context, groupMembershipId string, groupMembershipDto GroupMembershipDto) {
+func (pg *postgres) updateMembership(ctx *gin.Context, groupMembershipId string, groupMembershipDto GroupMembershipDto) error {
 	query := "update group_membership set enabled_at = @enabled_at, disabled_at @disabledAt where id = @id"
 	args := pgx.NamedArgs{
 		"enabledAt":  groupMembershipDto.EnabledAt,
@@ -39,6 +38,7 @@ func (pg *postgres) updateMembership(ctx *gin.Context, groupMembershipId string,
 	_, err := pg.db.Exec(ctx, query, args)
 
 	if err != nil {
-		log.Printf("Error while updating membership %s, %s", groupMembershipId, err)
+		return fmt.Errorf("error while updating membership %s, %s", groupMembershipId, err)
 	}
+	return nil
 }

@@ -14,9 +14,9 @@ func getIdentities(c *gin.Context) {
 	if err != nil {
 		log.Printf("Identities not found %s", err)
 		c.IndentedJSON(http.StatusNotFound, err)
-	} else {
-		c.IndentedJSON(http.StatusOK, identities)
+		return
 	}
+	c.IndentedJSON(http.StatusOK, identities)
 }
 
 func getExtendedIdentities(c *gin.Context) {
@@ -24,9 +24,9 @@ func getExtendedIdentities(c *gin.Context) {
 	if err != nil {
 		log.Printf("Identities not found %s", err)
 		c.IndentedJSON(http.StatusNotFound, err)
-	} else {
-		c.IndentedJSON(http.StatusOK, identities)
+		return
 	}
+	c.IndentedJSON(http.StatusOK, identities)
 }
 
 func getExtendedIdentity(c *gin.Context) {
@@ -35,9 +35,9 @@ func getExtendedIdentity(c *gin.Context) {
 	if err != nil {
 		log.Printf("Identity %s not found %s", identityId, err)
 		c.IndentedJSON(http.StatusNotFound, err)
-	} else {
-		c.IndentedJSON(http.StatusOK, identity)
+		return
 	}
+	c.IndentedJSON(http.StatusOK, identity)
 }
 
 func createIdentity(c *gin.Context) {

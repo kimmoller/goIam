@@ -14,22 +14,22 @@ type Identity struct {
 }
 
 type Account struct {
-	ID                   null.String `json:"id"`
-	Username             null.String `json:"username"`
-	SystemId             null.String `json:"systemId"`
-	IdentityId           null.String `json:"identityId"`
-	CreatedAt            time.Time   `json:"createdAt"`
-	ProvisionedAt        null.Time   `json:"provisionedAt"`
-	CommittedAt          null.Time   `json:"committedAt"`
-	EnabledAt            time.Time   `json:"enabledAt"`
-	EnableProvisionedAt  null.Time   `json:"enableProvisionedAt"`
-	EnableCommittedAt    null.Time   `json:"enableCommittedAt"`
-	DisabledAt           null.Time   `json:"disabledAt"`
-	DisableProvisionedAt null.Time   `json:"disableProvisionedAt"`
-	DisableCommittedAt   null.Time   `json:"disableCommittedAt"`
-	DeletedAt            null.Time   `json:"deletedAt"`
-	DeleteProvisionedAt  null.Time   `json:"deleteProvisionedAt"`
-	DeleteCommittedAt    null.Time   `json:"deleteCommittedAt"`
+	ID                   string    `json:"id"`
+	Username             string    `json:"username"`
+	SystemId             string    `json:"systemId"`
+	IdentityId           string    `json:"identityId"`
+	CreatedAt            time.Time `json:"createdAt"`
+	ProvisionedAt        null.Time `json:"provisionedAt"`
+	CommittedAt          null.Time `json:"committedAt"`
+	EnabledAt            time.Time `json:"enabledAt"`
+	EnableProvisionedAt  null.Time `json:"enableProvisionedAt"`
+	EnableCommittedAt    null.Time `json:"enableCommittedAt"`
+	DisabledAt           null.Time `json:"disabledAt"`
+	DisableProvisionedAt null.Time `json:"disableProvisionedAt"`
+	DisableCommittedAt   null.Time `json:"disableCommittedAt"`
+	DeletedAt            null.Time `json:"deletedAt"`
+	DeleteProvisionedAt  null.Time `json:"deleteProvisionedAt"`
+	DeleteCommittedAt    null.Time `json:"deleteCommittedAt"`
 }
 
 type PermissionGroup struct {

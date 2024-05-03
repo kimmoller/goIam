@@ -56,3 +56,10 @@ type GroupMembershipWithGroup struct {
 	EnabledAt  time.Time       `json:"enabledAt"`
 	DisabledAt null.Time       `json:"disabledAt"`
 }
+
+type AccountInterval struct {
+	enabledAt  time.Time
+	disabledAt null.Time
+	deletedAt  null.Time
+	reEnable   bool
+}

@@ -10,52 +10,7 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
-func (pg *postgres) getIdentityAccountsFromDb(ctx context.Context, identityId string) ([]Account, error) {
-	query := "select * from account where identity_id = @identityId"
-
-	args := pgx.NamedArgs{
-		"identityId": identityId,
-	}
-
-	rows, err := pg.db.Query(ctx, query, args)
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to get identity %s accounts, %w", identityId, err)
-	}
-
-	accounts, err := pgx.CollectRows(rows, pgx.RowToStructByName[Account])
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to scan row: %w", err)
-	}
-
-	return accounts, nil
-}
-
-func (pg *postgres) getIdentityAccountsForSystemIdFromDb(ctx context.Context, identityId string, systemIds []string) ([]Account, error) {
-	query := "select * from account where identity_id = @identityId and system_id in @systemId"
-
-	args := pgx.NamedArgs{
-		"identityId": identityId,
-		"systemId":   systemIds,
-	}
-
-	rows, err := pg.db.Query(ctx, query, args)
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to get identity %s accounts, %w", identityId, err)
-	}
-
-	accounts, err := pgx.CollectRows(rows, pgx.RowToStructByName[Account])
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to scan row: %w", err)
-	}
-
-	return accounts, nil
-}
-
-func (pg *postgres) insertAccount(ctx context.Context, account CreateAccount) {
+func (pg *postgres) insertAccount(ctx context.Context, account CreateAccount) error {
 	query := "insert into account (system_id, username, identity_id, enabled_at, disabled_at, deleted_at)" +
 		" values (@systemId, @username, @identityId, @enabledAt, @disabledAt, @deletedAt)"
 	args := pgx.NamedArgs{
@@ -69,21 +24,23 @@ func (pg *postgres) insertAccount(ctx context.Context, account CreateAccount) {
 
 	_, err := pg.db.Exec(ctx, query, args)
 	if err != nil {
-		log.Printf("Unable to insert row: %s", err)
+		return fmt.Errorf("error while creation identity %s account %s", account.identityId, account.systemId)
 	}
+	return nil
 }
 
-func (pg *postgres) updateAccount(ctx *gin.Context, updateAccount UpdateAccount, reEnable bool) {
-	reEnableSubQuery := ""
+func (pg *postgres) updateAccount(ctx *gin.Context, updateAccount UpdateAccount, reEnable bool) error {
+	query := "update account set enabled_at = @enabledAt, disabled_at = @disabledAt, deleted_at = @deletedAt" +
+		" where identity_id = @identityId and system_id = @systemId"
+
 	if reEnable {
-		reEnableSubQuery = "set enable_provisioned_at = null, enable_committed_at = null, disable_provisioned_at = null, disable_committed_at = null"
+		query = "update account set enabled_at = @enabledAt, disabled_at = @disabledAt, deleted_at = @deletedAt" +
+			", enable_provisioned_at = null, enable_committed_at = null, disable_provisioned_at = null," +
+			" disable_committed_at = null where identity_id = @identityId and system_id = @systemId"
 	}
 
-	query := "update account set enabled_at = @enabled_at @reEnable, disabled_at @disabledAt, deleted_at = @deletedAt" +
-		" where identityId = @identityId and systemId = @systemId"
 	args := pgx.NamedArgs{
 		"enabledAt":  updateAccount.enabledAt,
-		"reEnable":   reEnableSubQuery,
 		"disabledAt": updateAccount.disabledAt,
 		"deletedAt":  updateAccount.deletedAt,
 		"identityId": updateAccount.identityId,
@@ -93,8 +50,10 @@ func (pg *postgres) updateAccount(ctx *gin.Context, updateAccount UpdateAccount,
 	_, err := pg.db.Exec(ctx, query, args)
 
 	if err != nil {
-		log.Printf("Error while updating account %s for identity %s, %s", updateAccount.systemId, updateAccount.identityId, err)
+		return fmt.Errorf("error while updating account %s for identity %s, %s", updateAccount.systemId, updateAccount.identityId, err)
 	}
+
+	return nil
 }
 
 func (pg *postgres) getAccountsForProvisioning(ctx context.Context) ([]AccountProvision, error) {

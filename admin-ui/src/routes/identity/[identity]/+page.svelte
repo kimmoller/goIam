@@ -19,8 +19,12 @@
 	});
 
 	async function getIdentity() {
-		const response = await fetch(apiUrl + 'identity/' + identityId);
-		identity = await response.json();
+		try {
+			const response = await fetch(apiUrl + 'identity/' + identityId);
+			identity = await response.json();
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	function toggleDialog() {

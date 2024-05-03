@@ -15,6 +15,7 @@ func createMembership(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("Error while creating identity membership, %s", err)
 		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
 	}
 
 	defer response.Body.Close()
@@ -23,6 +24,7 @@ func createMembership(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("Error while reading response, %s", err)
 		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.Data(http.StatusOK, "application/json", body)

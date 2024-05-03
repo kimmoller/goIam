@@ -1,7 +1,8 @@
 Add unique constraint for account identity_id and system_id
 
-When creating membership, check if there is an existing account to re-enable
-With multiple existing memberships, changing enable time and re-enable might not be necessary
+Move disabled memberships to history table or filter out when dealing with existing memberships
+
+Add delete membership (set disable time to now)
 
 Add test cases
 
@@ -12,6 +13,8 @@ Add UI for account management {
     Add proper error handling
     Add test cases
     Add styles
+    Add modify to identity info
+    Add modify to memberships
 }
 
 Add delete account to core to clean up accounts that have been committed for delete
@@ -31,3 +34,5 @@ Add disable/delete processes
 Add membership update(enable,disable) and delete
 (with effect to account lifecycle)
 Add small delete delay for account?
+When creating membership, check if there is an existing account to re-enable
+With multiple existing memberships, changing enable time and re-enable might not be necessary

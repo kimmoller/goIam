@@ -7,12 +7,13 @@ import (
 )
 
 type ExtendedIdentity struct {
-	ID          string                     `json:"id"`
-	FirstName   string                     `json:"firstName"`
-	LastName    string                     `json:"lastName"`
-	Email       string                     `json:"email"`
-	Accounts    []Account                  `json:"accounts"`
-	Memberships []GroupMembershipWithGroup `json:"memberships"`
+	ID                  string                     `json:"id"`
+	FirstName           string                     `json:"firstName"`
+	LastName            string                     `json:"lastName"`
+	Email               string                     `json:"email"`
+	Accounts            []Account                  `json:"accounts"`
+	Memberships         []GroupMembershipWithGroup `json:"memberships"`
+	DisabledMemberships []GroupMembershipWithGroup `json:"disabledMemberships"`
 }
 
 type CreateAccount struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -88,6 +89,7 @@ func (pg *postgres) getExtendedIdentitiesFromDbWithQuery(ctx context.Context, qu
 		}
 
 		memberships := []GroupMembershipWithGroup{}
+		disabledMemberships := []GroupMembershipWithGroup{}
 		for membershipRows.Next() {
 			var membership GroupMembershipWithGroup
 			err := membershipRows.Scan(&membership.ID, &membership.IdentityId, &membership.Group.ID, &membership.Group.Name,
@@ -95,16 +97,21 @@ func (pg *postgres) getExtendedIdentitiesFromDbWithQuery(ctx context.Context, qu
 			if err != nil {
 				return fmt.Errorf("error while scanning identity %s memberships, %w", identity.ID, err)
 			}
-			memberships = append(memberships, membership)
+			if membership.DisabledAt.Valid && membership.DisabledAt.Time.Before(time.Now()) {
+				disabledMemberships = append(disabledMemberships, membership)
+			} else {
+				memberships = append(memberships, membership)
+			}
 		}
 
 		extendedIdentity := ExtendedIdentity{
-			ID:          identity.ID,
-			FirstName:   identity.FirstName,
-			LastName:    identity.LastName,
-			Email:       identity.Email,
-			Accounts:    accounts,
-			Memberships: memberships,
+			ID:                  identity.ID,
+			FirstName:           identity.FirstName,
+			LastName:            identity.LastName,
+			Email:               identity.Email,
+			Accounts:            accounts,
+			Memberships:         memberships,
+			DisabledMemberships: disabledMemberships,
 		}
 
 		identities = append(identities, extendedIdentity)

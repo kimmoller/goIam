@@ -11,22 +11,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (pg *postgres) getIdentityFromDb(ctx context.Context, identityId string) (*Identity, error) {
-	query := "select * from identity where id=@identityId"
-	args := pgx.NamedArgs{
-		"identityId": identityId,
-	}
-	row := pg.db.QueryRow(ctx, query, args)
-	var identity Identity
-	err := row.Scan(&identity.ID, &identity.FirstName, &identity.LastName, &identity.Email)
-
-	if err != nil {
-		return nil, fmt.Errorf("error while scanning identity %s, %w", identityId, err)
-	}
-
-	return &identity, nil
-}
-
 func (pg *postgres) getIdentitiesFromDb(ctx context.Context) ([]Identity, error) {
 	query := "select * from identity"
 	rows, err := pg.db.Query(ctx, query)

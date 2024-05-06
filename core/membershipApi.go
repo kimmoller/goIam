@@ -123,20 +123,28 @@ func getIntervalForAccount(ctx *gin.Context, membershipDto GroupMembershipDto, e
 		deletedAt:  account.DeletedAt,
 		reEnable:   reEnable,
 	}
+
+	minEnableTime := interval.enabledAt
+	var maxDisableTime null.Time
+
 	for m := range memberships {
 		membership := memberships[m]
-		if (!interval.enabledAt.Before(time.Now()) && membership.EnabledAt.Before(interval.enabledAt)) ||
-			(reEnable && interval.enabledAt.Before(time.Now())) ||
-			(reEnable && membership.EnabledAt.Before(interval.enabledAt)) {
-			interval.enabledAt = membership.EnabledAt
+
+		if interval.enabledAt.After(time.Now()) && minEnableTime.After(membership.EnabledAt) {
+			minEnableTime = membership.EnabledAt
 		}
-		if (interval.disabledAt.Valid && membership.DisabledAt.Valid && membership.DisabledAt.Time.After(interval.disabledAt.Time)) ||
-			(!interval.disabledAt.Valid && membership.DisabledAt.Valid) ||
-			(interval.disabledAt.Valid && !membership.DisabledAt.Valid) {
-			interval.disabledAt = membership.DisabledAt
+
+		if m == 0 {
+			maxDisableTime = membership.DisabledAt
+		} else if !membership.DisabledAt.Valid || (maxDisableTime.Valid && maxDisableTime.Time.Before(membership.DisabledAt.Time)) {
+			maxDisableTime = membership.DisabledAt
 		}
 	}
+
+	interval.enabledAt = minEnableTime
+	interval.disabledAt = maxDisableTime
 	interval.deletedAt = getAccountDeleteTime(interval.disabledAt)
+
 	log.Printf("Calculated interval for identity %s account %s with enable time %s, disable time %s, delete time %s, reEnable %s",
 		account.IdentityId, account.SystemId, interval.enabledAt, interval.disabledAt.Time, interval.deletedAt.Time, fmt.Sprint(reEnable))
 	return &interval, nil
@@ -189,7 +197,7 @@ func updateGroupMembership(ctx *gin.Context) {
 	identity, err := pgInstance.getExtendedIdentityFromDb(ctx, identityId)
 
 	if err != nil {
-		log.Printf("Error while fetching identity %s, %s", identityId, err)
+		log.Printf("error while fetching identity %s, %s", identityId, err)
 		ctx.IndentedJSON(http.StatusInternalServerError, err)
 		return
 	}
@@ -198,17 +206,81 @@ func updateGroupMembership(ctx *gin.Context) {
 		account := identity.Accounts[i]
 		err := updateExistingAccount(ctx, groupMembershipDto, identity, &account)
 		if err != nil {
-			log.Printf("Error while updating identity %s account %s, %s", identityId, account.SystemId, err)
+			log.Printf("error while updating identity %s account %s, %s", identityId, account.SystemId, err)
 			ctx.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
 	}
 
 	err = pgInstance.updateMembership(ctx, membershipId, groupMembershipDto)
+
 	if err != nil {
 		log.Println(err)
 		ctx.IndentedJSON(http.StatusInternalServerError, err)
 		return
 	}
+
 	ctx.IndentedJSON(http.StatusOK, "Updated membership "+membershipId)
+}
+
+func removeMembership(ctx *gin.Context) {
+	membershipId := ctx.Param("id")
+	log.Printf("Got request to remove membership %s", membershipId)
+	membership, err := pgInstance.findMembership(ctx, membershipId)
+
+	if err != nil {
+		log.Printf("Error while getting membership %s, %s", membershipId, err)
+		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	if membership.EnabledAt.After(time.Now()) {
+		membership.EnabledAt = time.Now()
+	}
+
+	membership.DisabledAt.Valid = true
+	membership.DisabledAt.Time = time.Now()
+
+	dto := GroupMembershipDto{
+		IdentityId: membership.IdentityId,
+		GroupId:    membership.GroupId,
+		EnabledAt:  membership.EnabledAt,
+		DisabledAt: membership.DisabledAt,
+	}
+
+	err = pgInstance.updateMembership(ctx, membershipId, dto)
+	if err != nil {
+		log.Printf("Error while removing membership %s, %s", membershipId, err)
+		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	identity, err := pgInstance.getExtendedIdentityFromDb(ctx, membership.IdentityId)
+
+	if err != nil {
+		log.Printf("error while fetching identity %s, %s", identity.ID, err)
+		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Remove the now deleted membership for calculations if it still exists in the list at this point
+	var remainingMemberships []GroupMembershipWithGroup
+	for i := range identity.Memberships {
+		if identity.Memberships[i].ID != membershipId {
+			remainingMemberships = append(remainingMemberships, identity.Memberships[i])
+		}
+	}
+	identity.Memberships = remainingMemberships
+
+	for i := range identity.Accounts {
+		account := identity.Accounts[i]
+		err := updateExistingAccount(ctx, dto, identity, &account)
+		if err != nil {
+			log.Printf("error while updating identity %s account %s, %s", identity.ID, account.SystemId, err)
+			ctx.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	ctx.IndentedJSON(http.StatusOK, fmt.Sprintf("Membership %s removed", membershipId))
 }

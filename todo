@@ -1,9 +1,3 @@
-Add unique constraint for account identity_id and system_id
-
-Move disabled memberships to history table or filter out when dealing with existing memberships
-
-Add delete membership (set disable time to now)
-
 Add test cases
 
 Add import-service for external identity/account provisioning
@@ -36,3 +30,6 @@ Add membership update(enable,disable) and delete
 Add small delete delay for account?
 When creating membership, check if there is an existing account to re-enable
 With multiple existing memberships, changing enable time and re-enable might not be necessary
+Add unique constraint for account identity_id and system_id
+Move disabled memberships to history table or filter out when dealing with existing memberships
+Add delete membership (set disable time to now)

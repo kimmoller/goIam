@@ -11,6 +11,7 @@ func main() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{"Origin", "Content-type"},
+		AllowMethods: []string{"GET", "POST", "PATCH", "DELETE"},
 	}))
 
 	router.GET("/identity", getIdentities)
@@ -18,6 +19,7 @@ func main() {
 	router.POST("/identity", createIdentity)
 
 	router.POST("/membership", createMembership)
+	router.DELETE("/membership/:id", deleteMembership)
 
 	router.Run(":8083")
 }

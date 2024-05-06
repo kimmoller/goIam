@@ -28,7 +28,7 @@ func (pg *postgres) insertMembership(ctx *gin.Context, createGroupMembershipDto 
 }
 
 func (pg *postgres) updateMembership(ctx *gin.Context, groupMembershipId string, groupMembershipDto GroupMembershipDto) error {
-	query := "update group_membership set enabled_at = @enabled_at, disabled_at @disabledAt where id = @id"
+	query := "update group_membership set enabled_at = @enabledAt, disabled_at = @disabledAt where id = @id"
 	args := pgx.NamedArgs{
 		"enabledAt":  groupMembershipDto.EnabledAt,
 		"disabledAt": groupMembershipDto.DisabledAt,
@@ -41,4 +41,21 @@ func (pg *postgres) updateMembership(ctx *gin.Context, groupMembershipId string,
 		return fmt.Errorf("error while updating membership %s, %s", groupMembershipId, err)
 	}
 	return nil
+}
+
+func (pg *postgres) findMembership(ctx *gin.Context, membershipId string) (*GroupMembership, error) {
+	query := "select * from group_membership where id = @id"
+	args := pgx.NamedArgs{
+		"id": membershipId,
+	}
+
+	row := pg.db.QueryRow(ctx, query, args)
+	var membership GroupMembership
+	err := row.Scan(&membership.ID, &membership.GroupId, &membership.IdentityId,
+		&membership.EnabledAt, &membership.DisabledAt, &membership.DisabledAt)
+
+	if err != nil {
+		return nil, fmt.Errorf("error while getting membership %s, %w", membershipId, err)
+	}
+	return &membership, nil
 }

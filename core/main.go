@@ -23,6 +23,7 @@ func main() {
 
 	router.POST("/membership", createGroupMembership)
 	router.PATCH("/membership/:id", updateGroupMembership)
+	router.DELETE("/membership/:id", removeMembership)
 
 	go syncAccounts()
 	go commitAccounts()

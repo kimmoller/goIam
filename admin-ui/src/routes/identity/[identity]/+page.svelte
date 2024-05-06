@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	const apiUrl = 'http://172.19.0.8:8083/';
+	const apiUrl = 'http://172.19.0.7:8083/';
 
 	let identity: ExtendedIdentity;
 	const identityId = window.location.pathname.slice(-1);
@@ -13,6 +13,9 @@
 		enabledAt: new Date().toISOString(),
 		disabledAt: null
 	};
+
+	let deleteModalIsOpen = false;
+	let membershipToDelete: string;
 
 	onMount(async () => {
 		await getIdentity();
@@ -29,6 +32,11 @@
 
 	function toggleDialog() {
 		isOpen = !isOpen;
+	}
+
+	function toggleDeleteDialog(id: string) {
+		membershipToDelete = id;
+		deleteModalIsOpen = !deleteModalIsOpen;
 	}
 
 	async function createMembership() {
@@ -48,6 +56,18 @@
 				enabledAt: new Date().toISOString(),
 				disabledAt: null
 			};
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	async function deleteMembership() {
+		try {
+			await fetch(apiUrl + 'membership/' + membershipToDelete, {
+				method: 'DELETE'
+			});
+			await getIdentity();
+			toggleDeleteDialog("");
 		} catch (error) {
 			console.log(error);
 		}
@@ -101,6 +121,12 @@
 			<button on:click={() => createMembership()} type="submit">Create</button>
 		</dialog>
 
+		<dialog open={deleteModalIsOpen}>
+			<p>Are you sure you want to delete the membership?</p>
+			<button on:click={() => toggleDeleteDialog("")}>Cancel</button>
+			<button on:click={() => deleteMembership()} type="submit">Delete</button>
+		</dialog>
+
 		<table>
 			<tr>
 				<th>Group</th>
@@ -113,6 +139,7 @@
 						<td>{membership.group.name}</td>
 						<td>{membership.enabledAt}</td>
 						<td>{membership.disabledAt}</td>
+						<td><button on:click={() => toggleDeleteDialog(membership.id)}>Delete</button></td>
 					</tr>
 				{/each}
 			{/if}

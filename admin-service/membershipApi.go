@@ -29,3 +29,36 @@ func createMembership(ctx *gin.Context) {
 
 	ctx.Data(http.StatusOK, "application/json", body)
 }
+
+func deleteMembership(ctx *gin.Context) {
+	id := ctx.Param("id")
+	log.Printf("Got request to delete membership %s", id)
+
+	client := &http.Client{}
+
+	req, err := http.NewRequest(http.MethodDelete, os.Getenv("CORE_URL")+"membership/"+id, nil)
+
+	if err != nil {
+		log.Printf("Error while creating request to delete membership %s, %s", id, err)
+		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Printf("Error while deleting membership %s, %s", id, err)
+		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if err != nil {
+		log.Printf("Error while reading response, %s", err)
+		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}

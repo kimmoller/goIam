@@ -12,8 +12,8 @@ import (
 )
 
 func containsSystemId(systemIds []string, systemId string) bool {
-	for s := range systemIds {
-		if systemIds[s] == systemId {
+	for _, value := range systemIds {
+		if value == systemId {
 			return true
 		}
 	}
@@ -21,9 +21,9 @@ func containsSystemId(systemIds []string, systemId string) bool {
 }
 
 func getAccountWithSystemId(accounts []Account, systemId string) *Account {
-	for a := range accounts {
-		if accounts[a].SystemId == systemId {
-			return &accounts[a]
+	for _, value := range accounts {
+		if value.SystemId == systemId {
+			return &value
 		}
 	}
 	return nil
@@ -65,8 +65,7 @@ func createGroupMembership(ctx *gin.Context) {
 		return
 	}
 
-	for i := range systemIds {
-		systemId := systemIds[i]
+	for _, systemId := range systemIds {
 		existingAccount := getAccountWithSystemId(identity.Accounts, systemId)
 		if existingAccount != nil {
 			log.Printf("Update existing account %s for identity %s", existingAccount.SystemId, identityId)
@@ -100,8 +99,7 @@ func createGroupMembership(ctx *gin.Context) {
 func getIntervalForAccount(ctx *gin.Context, membershipDto GroupMembershipDto, existingMemberships []GroupMembershipWithGroup,
 	account *Account) (*AccountInterval, error) {
 	memberships := []GroupMembershipDto{membershipDto}
-	for i := range existingMemberships {
-		membership := existingMemberships[i]
+	for _, membership := range existingMemberships {
 		systemIds, err := pgInstance.getGroupPermissions(ctx, membership.Group.ID)
 		if err != nil {
 			return nil, fmt.Errorf("rror while fetching permissions: %s", err)
@@ -127,14 +125,12 @@ func getIntervalForAccount(ctx *gin.Context, membershipDto GroupMembershipDto, e
 	minEnableTime := interval.enabledAt
 	var maxDisableTime null.Time
 
-	for m := range memberships {
-		membership := memberships[m]
-
+	for key, membership := range memberships {
 		if interval.enabledAt.After(time.Now()) && minEnableTime.After(membership.EnabledAt) {
 			minEnableTime = membership.EnabledAt
 		}
 
-		if m == 0 {
+		if key == 0 {
 			maxDisableTime = membership.DisabledAt
 		} else if !membership.DisabledAt.Valid || (maxDisableTime.Valid && maxDisableTime.Time.Before(membership.DisabledAt.Time)) {
 			maxDisableTime = membership.DisabledAt
@@ -202,8 +198,7 @@ func updateGroupMembership(ctx *gin.Context) {
 		return
 	}
 
-	for i := range identity.Accounts {
-		account := identity.Accounts[i]
+	for _, account := range identity.Accounts {
 		err := updateExistingAccount(ctx, groupMembershipDto, identity, &account)
 		if err != nil {
 			log.Printf("error while updating identity %s account %s, %s", identityId, account.SystemId, err)
@@ -265,15 +260,14 @@ func removeMembership(ctx *gin.Context) {
 
 	// Remove the now deleted membership for calculations if it still exists in the list at this point
 	var remainingMemberships []GroupMembershipWithGroup
-	for i := range identity.Memberships {
-		if identity.Memberships[i].ID != membershipId {
-			remainingMemberships = append(remainingMemberships, identity.Memberships[i])
+	for _, membership := range identity.Memberships {
+		if membership.ID != membershipId {
+			remainingMemberships = append(remainingMemberships, membership)
 		}
 	}
 	identity.Memberships = remainingMemberships
 
-	for i := range identity.Accounts {
-		account := identity.Accounts[i]
+	for _, account := range identity.Accounts {
 		err := updateExistingAccount(ctx, dto, identity, &account)
 		if err != nil {
 			log.Printf("error while updating identity %s account %s, %s", identity.ID, account.SystemId, err)

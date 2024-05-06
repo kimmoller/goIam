@@ -46,8 +46,7 @@ func sendAccountsToQueueu(channel *amqp.Channel, queueName string, accounts []Ac
 	if len(accounts) > 0 {
 		log.Printf("Sending %s accounts to queueu %s", fmt.Sprint(len(accounts)), queueName)
 	}
-	for i := range accounts {
-		account := accounts[i]
+	for _, account := range accounts {
 		body, err := json.Marshal(account)
 		if err != nil {
 			log.Printf("Error in json marshal: %s", err)
@@ -74,16 +73,16 @@ func sendAccountsToQueueu(channel *amqp.Channel, queueName string, accounts []Ac
 				log.Printf("Error while sending message: %s", err)
 			} else {
 				if queueName == "accountCreate" {
-					pgInstance.markAccountAsProvisioned(accounts[i].AccountID)
+					pgInstance.markAccountAsProvisioned(account.AccountID)
 				}
 				if queueName == "accountEnable" {
-					pgInstance.markAccountEnableAsProvisioned(accounts[i].AccountID)
+					pgInstance.markAccountEnableAsProvisioned(account.AccountID)
 				}
 				if queueName == "accountDisable" {
-					pgInstance.markAccountDisableAsProvisioned(accounts[i].AccountID)
+					pgInstance.markAccountDisableAsProvisioned(account.AccountID)
 				}
 				if queueName == "accountDelete" {
-					pgInstance.markAccountDeleteAsProvisioned(accounts[i].AccountID)
+					pgInstance.markAccountDeleteAsProvisioned(account.AccountID)
 				}
 			}
 		}

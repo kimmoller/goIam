@@ -31,6 +31,12 @@
 	}
 
 	function toggleDialog() {
+		dialogData = {
+			identityId: identityId,
+			groupId: '',
+			enabledAt: new Date().toISOString(),
+			disabledAt: null
+		};
 		isOpen = !isOpen;
 	}
 
@@ -50,12 +56,6 @@
 			});
 			await getIdentity();
 			toggleDialog();
-			dialogData = {
-				identityId: identityId,
-				groupId: '',
-				enabledAt: new Date().toISOString(),
-				disabledAt: null
-			};
 		} catch (error) {
 			console.log(error);
 		}
@@ -67,7 +67,7 @@
 				method: 'DELETE'
 			});
 			await getIdentity();
-			toggleDeleteDialog("");
+			toggleDeleteDialog('');
 		} catch (error) {
 			console.log(error);
 		}
@@ -123,7 +123,7 @@
 
 		<dialog open={deleteModalIsOpen}>
 			<p>Are you sure you want to delete the membership?</p>
-			<button on:click={() => toggleDeleteDialog("")}>Cancel</button>
+			<button on:click={() => toggleDeleteDialog('')}>Cancel</button>
 			<button on:click={() => deleteMembership()} type="submit">Delete</button>
 		</dialog>
 

@@ -1,8 +1,9 @@
-Add update mempership from UI
-
 Add test cases
 
+Improve error handling by using recover in goroutines
+
 Add import-service for external identity/account provisioning
+(Add script to create a new admin-ui user after docker compose)
 
 Add UI for account management {
     Add keycloak login
@@ -14,6 +15,8 @@ Add UI for account management {
 }
 
 Add delete account to core to clean up accounts that have been committed for delete
+
+Add programmatic config for keycloak
 
 DONE:
 Messages to handlers based on system_id
